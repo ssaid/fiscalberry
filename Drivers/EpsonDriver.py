@@ -3,6 +3,9 @@
 from Drivers.FiscalPrinterDriver import FiscalPrinterDriver, ComunicationError
 import random
 import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class EpsonDriver(FiscalPrinterDriver):
@@ -40,6 +43,7 @@ class EpsonDriver(FiscalPrinterDriver):
     def _sendMessage(self, message):
         # Envía el mensaje
         # @return reply Respuesta (sin el checksum)
+        logger.info('Called _sendMessage')
         self._write(message)
         timeout = time.time() + self.WAIT_TIME
         retries = 0
@@ -62,6 +66,7 @@ class EpsonDriver(FiscalPrinterDriver):
                 retries += 1
                 continue
             if c == chr(0x02):  # STX - Comienzo de la respuesta
+                logger.info('Started response')
                 reply = c
                 noreplyCounter = 0
                 while c != chr(0x03):  # ETX (Fin de texto)

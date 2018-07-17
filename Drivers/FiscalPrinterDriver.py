@@ -3,17 +3,25 @@ from DriverInterface import DriverInterface
 
 import serial
 import sys
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def debugEnabled(*args):
     print >> sys.stderr, " ".join(map(str, args))
 
 
+def debugEnabledLogging(*args):
+    dstr = " ".join(map(str, args))
+    logger.info(dstr)
+
+
 def debugDisabled(*args):
     pass
 
 
-debug = debugDisabled
+debug = debugEnabledLogging
 
 
 class PrinterException(Exception):
