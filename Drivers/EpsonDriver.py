@@ -43,7 +43,7 @@ class EpsonDriver(FiscalPrinterDriver):
     def _sendMessage(self, message):
         # Envía el mensaje
         # @return reply Respuesta (sin el checksum)
-        logger.info('Called _sendMessage')
+        logger.info('Called _sendMessage: %s' % message)
         self._write(message)
         timeout = time.time() + self.WAIT_TIME
         retries = 0
@@ -54,6 +54,7 @@ class EpsonDriver(FiscalPrinterDriver):
             if len(c) == 0:
                 continue
             if ord(c) in (0x12, 0x14):  # DC2 o DC4
+                logger.info('Increment timeout')
                 # incrementar timeout
                 timeout += self.WAIT_TIME
                 continue
@@ -61,6 +62,7 @@ class EpsonDriver(FiscalPrinterDriver):
                 if retries > self.RETRIES:
                     raise ComunicationError, "Falló el envío del comando a la impresora luego de varios reintentos"
                 # Reenvío el mensaje
+                logger.info('Resending message')
                 self._write(message)
                 timeout = time.time() + self.WAIT_TIME
                 retries += 1

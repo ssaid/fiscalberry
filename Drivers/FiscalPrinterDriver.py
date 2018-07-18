@@ -83,12 +83,14 @@ class FiscalPrinterDriver(DriverInterface):
         return self._parseReply(reply, skipStatusErrors)
 
     def _write(self, s):
-        debug("_write", ", ".join(["%x" % ord(c) for c in s]))
+        debug("[IN] _write", ", ".join(["%x" % ord(c) for c in s]))
         self._serialPort.write(s)
+        debug("[OUT] _write", ", ".join(["%x" % ord(c) for c in s]))
 
     def _read(self, count):
+        debug("[IN] _read")
         ret = self._serialPort.read(count)
-        debug("_read", ", ".join(["%x" % ord(c) for c in ret]))
+        debug("[OUT] _read", ", ".join(["%x" % ord(c) for c in ret]))
         return ret
 
     def __del__(self):
