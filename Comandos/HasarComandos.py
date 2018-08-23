@@ -226,6 +226,7 @@ class HasarComandos(ComandoFiscalInterface):
         return self._sendCommand(self.CMD_SET_CUSTOMER_DATA, parameters)
 
     def openBillTicket(self, type, name, address, doc, docType, ivaType):
+        self.cancelAnyDocument()
         self._setCustomerData(name, address, doc, docType, ivaType)
         if type == "A":
             type = "A"
@@ -250,6 +251,7 @@ class HasarComandos(ComandoFiscalInterface):
     ##  NO SE PUEDE
 
     def openDebitNoteTicket(self, type, name, address, doc, docType, ivaType):
+        self.cancelAnyDocument()
         if doc:
             self._setCustomerData(name, address, doc, docType, ivaType)
         if type == "A":
@@ -261,6 +263,7 @@ class HasarComandos(ComandoFiscalInterface):
         return self._sendCommand(self.CMD_OPEN_FISCAL_RECEIPT, [type, "T"])
 
     def openBillCreditTicket(self, type, name, address, doc, docType, ivaType, reference="NC"):
+        self.cancelAnyDocument()
         self._setCustomerData(name, address, doc, docType, ivaType)
         if type == "A":
             type = "R"
