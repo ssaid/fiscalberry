@@ -15,6 +15,7 @@ import time
 import ssl
 import Configberry
 import FiscalberryDiscover
+import sqlite3
 from  tornado import web
 if sys.platform == 'win32':
     from signal import signal, SIG_DFL, SIGTERM, SIGINT
@@ -54,6 +55,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
     def initialize(self):
         self.clients = []
         self.traductor = TraductoresHandler(self)
+        self.sqlite = SQLiteManager(mode='on')
 
     def open(self):
         self.clients.append(self)
@@ -88,6 +90,9 @@ class WSHandler(tornado.websocket.WebSocketHandler):
             response["err"] = errtxt
 
         logger.info("Response \n <- %s" % response)
+        q = 'INSERT INTO operations (date, in_message, out_message) VALUES (CURRENT_TIMESTAMP, ?, ?)'
+        q_p = (message, str(response))
+        self.sqlite.writedb(q, q_p)
         self.write_message(response)
 
     def on_close(self):
@@ -96,6 +101,37 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 
     def check_origin(self, origin):
         return True
+
+
+class SQLiteManager(object):
+    def __init__(self, path='database.db', mode='off'):
+        self.path = path
+        self.mode = mode
+        self.conn = sqlite3.connect(path)
+        logger.info('Initialized SQLite Connection: {}'.format(path))
+        q = """
+            CREATE TABLE IF NOT EXISTS operations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date DATETIME,
+                in_message TEXT,
+                out_message TEXT
+            )
+        """
+        try:
+            with self.conn:
+                self.conn.execute(q)
+        except Exception as e:
+            logger.warning('Unable to create specified table')
+            raise
+
+    def writedb(self, q, q_p):
+        if self.mode == 'off':
+            return None
+        try:
+            with self.conn:
+                self.conn.execute(q, q_p)
+        except Exception as e:
+            logger.exception('Unable to execute query {}, with parameters {}')
 
 
 class FiscalberryApp:
@@ -118,7 +154,6 @@ class FiscalberryApp:
 
         signal(SIGTERM, sig_handler)
         signal(SIGINT, sig_handler)
-
 
     def shutdown(self):
         logger.info('Stopping http server')
